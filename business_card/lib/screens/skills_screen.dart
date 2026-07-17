@@ -76,9 +76,9 @@ class SkillsScreen extends StatelessWidget {
                       return Chip(
                         label: Text(skill),
                         backgroundColor:
-                            (category['color'] as Color).withOpacity(0.1),
+                            (category['color'] as Color).withValues(alpha: 0.1),
                         side: BorderSide(
-                          color: (category['color'] as Color).withOpacity(0.3),
+                          color: (category['color'] as Color).withValues(alpha: 0.3),
                         ),
                       );
                     }).toList(),
