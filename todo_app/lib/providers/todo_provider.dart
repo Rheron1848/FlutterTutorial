@@ -22,12 +22,13 @@ class TodoProvider extends ChangeNotifier {
   String get filter => _filter;
   int get activeCount => _todos.where((t) => !t.isDone).length;
 
-  void addTodo(String title) {
+  void addTodo(String title, {TodoPriority priority = TodoPriority.medium}) {
     _todos.insert(
       0,
       Todo(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         title: title,
+        priority: priority,
       ),
     );
     _saveToStorage();
@@ -47,9 +48,16 @@ class TodoProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateTodo(String id, String newTitle) {
+  void updateTodo(
+    String id,
+    String newTitle, {
+    TodoPriority? priority,
+  }) {
     final todo = _todos.firstWhere((t) => t.id == id);
     todo.title = newTitle;
+    if (priority != null) {
+      todo.priority = priority;
+    }
     _saveToStorage();
     notifyListeners();
   }

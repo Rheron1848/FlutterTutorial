@@ -10,6 +10,7 @@
 | 二 | `phase02_widget_examples/` | Widget + 布局 + 导航 | `business_card/` |
 | 三 | `weather_app/` | 状态管理 + 网络请求 | `weather_app/` |
 | 四 | `todo_app/` | 持久化 + 动画 + Provider | `todo_app/` |
+| 五 | `phase05_routing_theme/` | 声明式路由 + 主题 + 深链 | `todo_app/`（多页面改造） |
 
 ## 前置准备
 
@@ -121,3 +122,4 @@ flutter run         # 启动应用
 4. 研究 `business_card/` 理解多页面导航
 5. 进入 `weather_app/` 学习状态管理和网络请求
 6. 最后完成 `todo_app/` 综合运用所有技能
+7. 阅读 `phase05_routing_theme/` 学习声明式路由（go_router）与应用主题，并把 `todo_app/` 升级为带底部导航、任务详情页、深浅色切换和深链支持的多页面应用

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/todo_provider.dart';
 import '../models/todo.dart';
+import '../providers/todo_provider.dart';
+import '../router.dart';
+import '../theme.dart';
 
 class TodoScreen extends StatefulWidget {
   const TodoScreen({super.key});
@@ -13,6 +15,8 @@ class TodoScreen extends StatefulWidget {
 class _TodoScreenState extends State<TodoScreen> {
   final TextEditingController _controller = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  // 新增任务时选择的优先级（类比表单里的下拉默认值）
+  TodoPriority _newPriority = TodoPriority.medium;
 
   @override
   void dispose() {
@@ -22,42 +26,86 @@ class _TodoScreenState extends State<TodoScreen> {
 
   void _addTodo() {
     if (_formKey.currentState!.validate()) {
-      context.read<TodoProvider>().addTodo(_controller.text.trim());
+      context
+          .read<TodoProvider>()
+          .addTodo(_controller.text.trim(), priority: _newPriority);
       _controller.clear();
+      setState(() => _newPriority = TodoPriority.medium);
     }
+  }
+
+  // 优先级选择控件：SegmentedButton（Material 3 分段选择器）
+  Widget _buildPrioritySelector(
+    TodoPriority selected,
+    void Function(TodoPriority) onChanged,
+  ) {
+    final taskColors = AppTaskColors.of(context);
+    return SegmentedButton<TodoPriority>(
+      segments: TodoPriority.values.map((p) {
+        return ButtonSegment(
+          value: p,
+          label: Text(p.label),
+          icon: Icon(
+            Icons.circle,
+            size: 10,
+            color: _priorityColor(taskColors, p),
+          ),
+        );
+      }).toList(),
+      selected: {selected},
+      onSelectionChanged: (selection) => onChanged(selection.first),
+    );
   }
 
   void _showEditDialog(Todo todo) {
     final editController = TextEditingController(text: todo.title);
+    var priority = todo.priority;
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('编辑任务'),
-        content: TextField(
-          controller: editController,
-          autofocus: true,
-          decoration: const InputDecoration(
-            hintText: '任务名称',
-            border: OutlineInputBorder(),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('编辑任务'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: editController,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  hintText: '任务名称',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text('优先级'),
+              const SizedBox(height: 8),
+              _buildPrioritySelector(priority, (p) {
+                // 对话框内部的状态需要用 setDialogState 局部刷新
+                setDialogState(() => priority = p);
+              }),
+            ],
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('取消'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (editController.text.trim().isNotEmpty) {
+                  context.read<TodoProvider>().updateTodo(
+                        todo.id,
+                        editController.text.trim(),
+                        priority: priority,
+                      );
+                  Navigator.pop(ctx);
+                }
+              },
+              child: const Text('保存'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('取消'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (editController.text.trim().isNotEmpty) {
-                context
-                    .read<TodoProvider>()
-                    .updateTodo(todo.id, editController.text.trim());
-                Navigator.pop(ctx);
-              }
-            },
-            child: const Text('保存'),
-          ),
-        ],
       ),
     );
   }
@@ -106,6 +154,17 @@ class _TodoScreenState extends State<TodoScreen> {
               ),
             ),
           ),
+          // 新增任务时的优先级选择
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: _buildPrioritySelector(_newPriority, (p) {
+                setState(() => _newPriority = p);
+              }),
+            ),
+          ),
+          const SizedBox(height: 8),
           Consumer<TodoProvider>(
             builder: (context, provider, _) {
               return Padding(
@@ -180,6 +239,7 @@ class _TodoScreenState extends State<TodoScreen> {
   }
 
   Widget _buildTodoItem(Todo todo) {
+    final taskColors = AppTaskColors.of(context);
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       margin: const EdgeInsets.only(bottom: 8),
@@ -209,29 +269,57 @@ class _TodoScreenState extends State<TodoScreen> {
               child: Checkbox(
                 value: todo.isDone,
                 onChanged: (_) {
+                  // 点击切换完成只保留在 Checkbox 上
                   context.read<TodoProvider>().toggleTodo(todo.id);
                 },
               ),
             ),
-            title: AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 200),
-              style: TextStyle(
-                fontSize: 16,
-                decoration: todo.isDone ? TextDecoration.lineThrough : null,
-                color: todo.isDone ? Colors.grey : null,
-              ),
-              child: Text(todo.title),
+            // 优先级颜色圆点（颜色取自 ThemeExtension，深浅色各一套）
+            title: Row(
+              children: [
+                Container(
+                  width: 10,
+                  height: 10,
+                  margin: const EdgeInsets.only(right: 8),
+                  decoration: BoxDecoration(
+                    color: _priorityColor(taskColors, todo.priority),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                Expanded(
+                  child: AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 200),
+                    style: TextStyle(
+                      fontSize: 16,
+                      decoration:
+                          todo.isDone ? TextDecoration.lineThrough : null,
+                      color: todo.isDone ? Colors.grey : null,
+                    ),
+                    child: Text(todo.title),
+                  ),
+                ),
+              ],
             ),
             trailing: IconButton(
               icon: const Icon(Icons.edit, size: 20),
               onPressed: () => _showEditDialog(todo),
             ),
-            onTap: () {
-              context.read<TodoProvider>().toggleTodo(todo.id);
-            },
+            // 点击任务行进入详情页（typed route，编译期类型安全）
+            onTap: () => TaskRouteData(id: todo.id).push(context),
           ),
         ),
       ),
     );
+  }
+
+  Color _priorityColor(AppTaskColors colors, TodoPriority priority) {
+    switch (priority) {
+      case TodoPriority.high:
+        return colors.highPriority;
+      case TodoPriority.medium:
+        return colors.mediumPriority;
+      case TodoPriority.low:
+        return colors.lowPriority;
+    }
   }
 }
