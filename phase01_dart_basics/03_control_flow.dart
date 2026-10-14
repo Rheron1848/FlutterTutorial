@@ -45,7 +45,7 @@ void main() {
   }
 
   // === 5. 三元运算符 ===
-  var isLoggedIn = true;
+  var isLoggedIn = checkLogin(); // 假装这是从登录状态获取的值
   var message = isLoggedIn ? '欢迎回来' : '请登录';
   print(message);
 
@@ -59,3 +59,6 @@ void main() {
     print('finally 总是执行');
   }
 }
+
+// 假装检查登录状态，实际项目中可能读取缓存或调用接口
+bool checkLogin() => true;

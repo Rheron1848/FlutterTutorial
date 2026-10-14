@@ -22,12 +22,14 @@ void main() {
   double height = 1.75;
   String name = 'Dart';
   bool isFun = true;
+  print('age: $age, height: $height, name: $name, isFun: $isFun');
 
   // === 4. 空安全（Null Safety）===
   // Python: x = None
   String? maybeNull = null; // ? 表示可为 null
   String notNull = 'hello';
   // notNull = null; // ❌ 编译错误！非空类型不能赋 null
+  print('notNull: $notNull');
 
   // ?? 运算符：如果为 null 则使用默认值
   String result = maybeNull ?? 'default value';

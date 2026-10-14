@@ -53,6 +53,11 @@ void main() {
   var list1 = [1, 2, 3, 4];
   var list2 = [3, 4, 5, 6];
 
+  // 两个列表的交集
+  // Python: [n for n in list1 if n in list2]
+  var common = list1.where((n) => list2.contains(n)).toList();
+  print('common: $common'); // [3, 4]
+
   // 筛选满足条件的第一个元素
   var firstEven = list1.firstWhere((n) => n % 2 == 0);
   print('first even: $firstEven');

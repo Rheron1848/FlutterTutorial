@@ -8,8 +8,8 @@
 |------|------|------|----------|
 | 一 | `phase01_dart_basics/` | Dart 语法速成 | `hello_flutter/` |
 | 二 | `phase02_widget_examples/` | Widget + 布局 + 导航 | `business_card/` |
-| 三 | `phase03_advanced_examples/` | 状态管理 + 网络请求 | `weather_app/` |
-| 四 | `phase04_advanced_examples/` | 持久化 + 动画 + Provider | `todo_app/` |
+| 三 | `weather_app/` | 状态管理 + 网络请求 | `weather_app/` |
+| 四 | `todo_app/` | 持久化 + 动画 + Provider | `todo_app/` |
 
 ## 前置准备
 
